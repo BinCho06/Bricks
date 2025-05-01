@@ -1,0 +1,97 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Comic sans MS';
+    background-color: #4AC6CE;
+    background-repeat: no-repeat;
+    background-size: 100%;
+}
+h1{
+    font-size: min(4vh, 10vw);
+    line-height: 5vh;
+    margin: 0.5vh 0;
+    text-align: center;
+}
+#content p{
+    font-size: min(3vh, 6vw);
+}
+#content button{
+    position: absolute;
+    border-radius: 0.4em;
+    border: min(0.3vh, 0.6vw) solid;
+    font-size: min(3vh, 6vw);
+    cursor: pointer;
+    transition: backgroung-color 0.4s ease;
+}
+#content button:hover{
+    background-color: #ccc;
+}
+
+.centred{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#content{
+    position: relative;
+    width: min(70dvh, 94%);
+    height: max-content;
+    margin: 0 auto;
+}
+#score{
+    float: left;
+}
+#lives{
+    float: right;
+    line-height: 1vh;
+}
+#lives img{
+    width: min(4vh, 8vw);
+    height: auto;
+}
+#canvas{
+    border: min(0.3vh, 0.6vw) solid;
+    width: 100%;
+    height: auto;
+}
+#play{
+    border-radius: 1em;
+    padding: 0.3em 0.5em;
+    top: calc(50% - 1em);
+    left: calc(50% - 1.5em);
+}
+#content>div>button{
+    width: 2em;
+    height: 2em;
+}
+#info{
+    right: 0;
+}
+
+#credits{
+    position: absolute;
+    top: 6vh;
+    left: 60px;
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    z-index: 1;
+}
+
+/* SweetAlert custom classes */
+.align-left{
+    text-align: left !important;
+}
+.buttoncolor{
+    box-shadow: none !important;
+    background-color: rgb(0, 150, 255);
+    transition: background-color 0.4s;
+}
+.buttoncolor:hover{
+    box-shadow: none !important;
+    background-color: rgb(0, 225, 255);
+}
