@@ -6,14 +6,29 @@
 body {
     font-family: 'Comic sans MS';
     background-color: #4AC6CE;
-    background-repeat: no-repeat;
-    background-size: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 h1{
     font-size: min(4vh, 10vw);
     line-height: 5vh;
     margin: 0.5vh 0;
     text-align: center;
+}
+
+.centred{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#content{
+    flex: 0;
+    position: relative;
+    width: min(70dvh, 94%);
+    height: max-content;
+    margin: 0 auto;
 }
 #content p{
     font-size: min(3vh, 6vw);
@@ -29,19 +44,6 @@ h1{
 #content button:hover{
     background-color: #ccc;
 }
-
-.centred{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-#content{
-    position: relative;
-    width: min(70dvh, 94%);
-    height: max-content;
-    margin: 0 auto;
-}
 #score{
     float: left;
 }
@@ -54,6 +56,7 @@ h1{
     height: auto;
 }
 #canvas{
+    background-color: rgba(74, 198, 206, 0.8);
     border: min(0.3vh, 0.6vw) solid;
     width: 100%;
     height: auto;
@@ -70,6 +73,25 @@ h1{
 }
 #info{
     right: 0;
+}
+#background-wrapper{
+    position: relative;
+}
+#background{
+    position: absolute;
+    top: -136px;
+    z-index: -1;
+    background-image: url(../img/ground.png);
+    width: 100%;
+    height: auto;
+}
+#background img{
+    visibility: hidden;
+}
+#ground{
+    background-color: #E1D694;
+    width: 100%;
+    flex: 1;
 }
 
 #credits{

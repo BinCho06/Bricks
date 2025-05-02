@@ -12,16 +12,6 @@ const brickWidth = Math.floor(WIDTH / cols);
 const brickHeight = Math.floor(HEIGHT*0.6 / rows);
 const updateSpeed = 20;
 
-// just a reminder of my stupidity
-/*const brickColors = [ 
-    "#00c800", // green
-    "#ffe400", // yellow
-    "#ff6400", // orange
-    "#ff0000", // red
-    "#c800c8"  // purple
-];
-const brickImage = new Image();
-brickImage.src = "img/alpha-brick.png";*/
 const brickImages = [];
 for (let i = 1; i <= 5; i++) {
     const img = new Image();
@@ -54,6 +44,9 @@ var lives;
 var tocke;
 var rightDown = false;
 var leftDown = false;
+var mouseDown = false;
+var mouseToggle = false;
+var mouseX;
 
 var paddlex;
 var paddleh;
@@ -66,6 +59,7 @@ class Ball {
         this.y = y;
         this.dx = dx;
         this.dy = dy;
+        this.speed = Math.sqrt(dx * dx + dy * dy);
         this.r = r;
         this.rotation = 0;
     }
@@ -73,6 +67,7 @@ class Ball {
     move() {
         this.x += this.dx;
         this.y += this.dy;
+        this.speed = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
         this.rotation += 0.1;
     }
 
@@ -114,7 +109,7 @@ let imagesLoaded = 0;
 function onImageLoad() {
     imagesLoaded++;
     if (imagesLoaded == 7) {
-        draw(); // Only call draw() when both images are loaded
+        draw();
     }
 }
 ballImage.onload = onImageLoad;
@@ -153,10 +148,10 @@ function initBricks() {
         bricks[i] = new Array(cols);
         for (let j = 0; j < cols; j++) {
             if (i + rows/2 == j || i + j + rows/2 == rows - 1 || i - rows/2 == j || i + j - rows/2 == rows - 1) bricks[i][j] = 5;
-            else if (i + rows/2 <= j || i + j + rows/2 <= rows - 1) bricks[i][j] = 4;
+            else if (i + rows/2 <= j || i + j + rows/2 <= rows - 1 || i - rows/2 <= j && i > j && i + j - rows/2 <= rows - 1 && i + j > rows - 1) bricks[i][j] = 4;
             else if (i == j || i + j == rows - 1) bricks[i][j] = 3;
-            else if(i < j && i + j > rows - 1 || i > j && i + j < rows - 1) bricks[i][j] = 2;
-            else if(i < j && i + j < rows - 1) bricks[i][j] = 1;
+            else if(i < j && i + j < rows - 1) bricks[i][j] = 2;
+            else if(i < j && i + j > rows - 1 || i > j && i + j < rows - 1) bricks[i][j] = 1;
             else bricks[i][j] = 0;
         }
     }
@@ -164,15 +159,36 @@ function initBricks() {
 
 // Handle key presses
 document.addEventListener("keydown", function(evt) {
-    if (evt.keyCode == 39 || evt.keyCode == 68) rightDown = true;
-    if (evt.keyCode == 37 || evt.keyCode == 65) leftDown = true;
+    let rightKeyDown = false;
+    let leftKeyDown = false;
+    if (evt.keyCode == 39 || evt.keyCode == 68) rightKeyDown = true;
+    if (evt.keyCode == 37 || evt.keyCode == 65) leftKeyDown = true;
     if (evt.keyCode == 80 || evt.keyCode == 27) pauseGame(); // P and ESC
     if (evt.keyCode == 73) info(); // I for instructions
+    if (rightKeyDown || leftKeyDown) {
+        mouseToggle = false;
+        rightDown = rightKeyDown;
+        leftDown = leftKeyDown;
+    }
 });
 document.addEventListener("keyup", function(evt) {
     if (evt.keyCode == 39 || evt.keyCode == 68) rightDown = false;
     if (evt.keyCode == 37 || evt.keyCode == 65) leftDown = false;
 });
+// Handle mouse events
+canvas.addEventListener("mousedown", function(evt) {
+    mouseDown = true;
+    mouseToggle = true;
+    getMouseX(evt);
+});
+canvas.addEventListener("mouseup", function(evt) {
+    mouseDown = false;
+});
+canvas.addEventListener("mousemove", getMouseX);
+
+function getMouseX(evt) {
+    if(mouseDown) mouseX = evt.offsetX * (canvas.width / canvas.clientWidth);
+}
 
 function drawLives() {
     livesContainer.innerHTML = "";
@@ -203,6 +219,21 @@ function update(){
 }
 
 function movePaddle() {
+    if(mouseToggle){
+        let paddleCenter = paddlex + paddlew/2;
+        if (Math.abs(mouseX - paddleCenter) < paddleSpeed) {
+            paddlex = mouseX - paddlew/2;
+            leftDown = false;
+            rightDown = false;
+            if(!mouseDown) mouseToggle = false;
+        } else if (mouseX < paddleCenter) {
+            leftDown = true;
+            rightDown = false;
+        } else if (mouseX > paddleCenter){
+            rightDown = true;
+            leftDown = false;
+        }
+    }
     if (rightDown) {
         if ((paddlex + paddlew) < WIDTH) {
             paddlex += paddleSpeed;
@@ -277,7 +308,7 @@ function getRandomPowerUpType() {
     let cumulativeChance = 0;
     for (const [type, chance] of Object.entries(powerUpDropChances)) {
         cumulativeChance += chance;
-        if (random <= cumulativeChance) {
+        if (cumulativeChance >= random) {
             return type;
         }
     }
@@ -296,7 +327,7 @@ function checkCollsions(ball) {
     if (y < rows * brickHeight && row >= 0 && col >= 0 && bricks[row][col] > 0) {
         ball.dy = -dy;
         bricks[row][col]--;
-        tocke += 1;
+        tocke += Math.round(ball.speed/10);
         score.innerHTML = 'Score: '+tocke;
         if (bricks[row][col] == 0) {
             if (Math.random() < powerUpDropChance) {
@@ -312,14 +343,12 @@ function checkCollsions(ball) {
     if (y + dy < 0 + r)
         ball.dy = -dy;
     else if (x > paddlex && x < paddlex + paddlew && y > canvas.height - paddleh - r) {
-        const hitPosition = (x - paddlex) / paddlew; // Normalize hit position (0 to 1)
-    const angle = (hitPosition - 0.5) * (Math.PI * 0.94); // Map to -85° to +85° (steeper angles)
+        const hitPosition = (x-(paddlex+paddlew/2))/paddlew; // hit position (-0.5 to 0.5)
+        const angle = hitPosition * (Math.PI * 0.84);
 
-    const speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy); // Preserve speed
-    ball.dx = speed * Math.sin(angle); // Adjust horizontal velocity
-    ball.dy = -speed * Math.cos(angle);
-        /*ball.dy = -dy;
-        ball.dx = 8 * ((x - (paddlex + paddlew / 2)) / paddlew);*/
+        ball.speed *= 1.02;
+        ball.dx = ball.speed * Math.sin(angle);
+        ball.dy = -ball.speed * Math.cos(angle);
     } else if (!(x > paddlex && x < paddlex + paddlew) && y > canvas.height - r) {
         return true;
     }
@@ -402,29 +431,9 @@ function draw() {
 }
 
 function drawBricks() {
-    // Create an offscreen canvas for tinting 
-    /*const offscreenCanvas = document.createElement("canvas");
-    offscreenCanvas.width = brickWidth;
-    offscreenCanvas.height = brickHeight;
-    const offscreenCtx = offscreenCanvas.getContext("2d");*/
-
     for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
             if (bricks[i][j] > 0) {
-                /*// Draw the brick image onto the offscreen canvas
-                offscreenCtx.clearRect(0, 0, brickWidth, brickHeight);
-                offscreenCtx.drawImage(brickImage, 0, 0, brickWidth, brickHeight);
-
-                // Apply the color tint
-                offscreenCtx.globalCompositeOperation = "source-in";
-                offscreenCtx.fillStyle = brickColors[bricks[i][j] - 1];
-                offscreenCtx.fillRect(0, 0, brickWidth, brickHeight);
-
-                // Reset the composite operation
-                offscreenCtx.globalCompositeOperation = "source-over";
-
-                // Draw the tinted brick onto the main canvas
-                ctx.drawImage(offscreenCanvas, j * brickWidth, i * brickHeight, brickWidth, brickHeight);*/
                 ctx.drawImage(brickImages[bricks[i][j] - 1], j * brickWidth, i * brickHeight, brickWidth, brickHeight);
             }
         }
