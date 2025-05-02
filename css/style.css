@@ -96,12 +96,13 @@ h1{
 
 #credits{
     position: absolute;
-    top: 6vh;
-    left: 60px;
+    top: -50px;
+    left: 98px;
     width: 15px;
-    height: 15px;
+    height: 17px;
     cursor: pointer;
-    z-index: 1;
+    z-index: 2;
+    background-color: red;
 }
 
 /* SweetAlert custom classes */
